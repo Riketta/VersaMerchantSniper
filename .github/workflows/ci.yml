@@ -13,7 +13,10 @@ jobs:
 
       - uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: "5.1"
+          # LuaJIT 2.1 is 5.1-API-compatible and its tarball is GitHub-hosted
+          # (openresty/luajit2) - lua.org's FTP server times CI builds out
+          # regularly. The 5.1-syntax gate stays with luacheck's own parser.
+          luaVersion: "luajit-2.1.0-beta3"
 
       - uses: luarocks/gh-actions-luarocks@v5
 
