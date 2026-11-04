@@ -24,20 +24,18 @@ jobs:
       - uses: luarocks/gh-actions-luarocks@v5
 
       - name: Install Lua tooling
-        # Direct pinned rocks, bypassing manifest search: the luarocks.org
-        # manifest outgrew LuaJIT's 65536-constants-per-function parse
-        # limit, so "luarocks install <name>" cannot resolve anything (every
-        # manifest server fails the same way). The per-namespace URLs below
-        # are small and load fine. busted's whole dependency chain resolves
-        # through that manifest too, so tests run on the repo's own
+        # Direct pinned rockspecs, bypassing manifest search: the luarocks.org
+        # manifest outgrew LuaJIT's 65536-constants-per-function parse limit,
+        # so "luarocks install <name>" cannot resolve anything (every manifest
+        # server fails the same way). These per-namespace rockspec URLs are
+        # small and load fine; --deps-mode=none keeps luarocks off the big
+        # manifest for dependency checks. busted's whole dependency chain
+        # resolves through that manifest too, so tests run on the repo's own
         # busted-compatible shim instead (same harness local runs use).
         run: |
-          curl -fL https://luarocks.org/manifests/argparse/argparse-0.7.2-1.src.rock -o argparse.src.rock
-          curl -fL https://luarocks.org/manifests/hisham/luafilesystem-1.8.0-1.src.rock -o luafilesystem.src.rock
-          curl -fL https://luarocks.org/manifests/lunarmodules/luacheck-1.2.0-1.src.rock -o luacheck.src.rock
-          luarocks install --deps-mode=none argparse.src.rock
-          luarocks install --deps-mode=none luafilesystem.src.rock
-          luarocks install --deps-mode=none luacheck.src.rock
+          luarocks install --deps-mode=none https://luarocks.org/manifests/argparse/argparse-0.7.2-1.rockspec
+          luarocks install --deps-mode=none https://luarocks.org/manifests/hisham/luafilesystem-1.8.0-1.rockspec
+          luarocks install --deps-mode=none https://luarocks.org/manifests/lunarmodules/luacheck-1.2.0-1.rockspec
 
       - name: Install StyLua
         uses: taiki-e/install-action@v2
