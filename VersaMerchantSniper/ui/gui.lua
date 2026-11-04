@@ -209,6 +209,11 @@ function Gui:buildWindow()
     self:buildLogTab()
     self:buildSettingsTab()
     self:buildMerchantHook()
+
+    -- Windows start closed: CreateFrame frames are visible by default, and
+    -- the dashboard must not pop on every login/reload - /vms and the
+    -- merchant toggle button are the only openers.
+    frame:Hide()
 end
 
 --- List tab: entry input + quantity box + add, pooled tracked-entry table

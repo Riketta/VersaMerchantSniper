@@ -190,7 +190,8 @@ the text; the slash path keeps the `x<qty>` spelling.
 
 - Window: portrait + NineSlice frame (AuctiMogger construction), ESC-close
   via `UISpecialFrames`, movable, clamped. Tabs: **List**, **Log**,
-  **Settings**.
+  **Settings**. Starts closed on login/reload - `/vms` and the merchant
+  toggle button are the only openers.
 - List tab: entry input (paste item link / bare ID / name; optional `max
   <money>`, `stop`/`nostop` tokens) + quantity-to-buy box (1 default) +
   Add/Update button; alt+click a row to edit it in place, right-click to
