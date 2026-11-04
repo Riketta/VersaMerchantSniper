@@ -39,9 +39,11 @@ function M.slotMatches(slot, entry)
     return false
 end
 
---- Resolves the visit's matches: each active, enabled entry claims at most
---- one slot (its first match) and each slot serves at most one entry (the
---- first matching entry in list order - list order is the user's priority).
+--- Resolves the visit's matches: each entry claims at most one slot (its
+--- first match) and each slot serves at most one entry (the first matching
+--- entry in list order - list order is the caller's priority). Activity
+--- filtering is the CALLER's policy: pass the active subset for hunt
+--- matching, the full list for presence recording.
 ---@param slots MerchantSlot[]
 ---@param entries TrackedEntry[]
 ---@return MatchPair[]
@@ -50,7 +52,7 @@ function M.resolveMatches(slots, entries)
     local matches = {}
     for _, slot in ipairs(slots) do
         for _, entry in ipairs(entries) do
-            if entry.status == "active" and entry.enabled and not claimed[entry.key] and M.slotMatches(slot, entry) then
+            if not claimed[entry.key] and M.slotMatches(slot, entry) then
                 claimed[entry.key] = true
                 matches[#matches + 1] = { entry = entry, slot = slot }
                 break

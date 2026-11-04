@@ -162,6 +162,31 @@ describe("SnipingCore", function()
         assert.equals(true, ring[1].note:find("1 missed", 1, true) ~= nil)
     end)
 
+    it("records presence for done and disabled entries without hunting them", function()
+        local core, h = makeCore({
+            slots = { slot({ itemID = 6052, index = 1 }), slot({ itemID = 9305, index = 2 }) },
+        })
+        local done = entry({ itemID = 6052 })
+        done.status = "done"
+        done.enabled = false
+        local disabled = entry({ itemID = 9305 })
+        disabled.enabled = false
+        local active = entry({ itemID = 4357 })
+        h.shape.list[1] = done
+        h.shape.list[2] = disabled
+        h.shape.list[3] = active
+        core:onMerchantShow("Innkeeper", "Stormwind")
+        -- Presence: last seen updates for every tracked entry, active or not.
+        assert.equals(1, done.stats.visitsSeen)
+        assert.equals(1, disabled.stats.visitsSeen)
+        assert.is_true(done.stats.lastSeen ~= nil)
+        assert.equals("Innkeeper", done.stats.lastSeenVendor)
+        -- Hunting: no miss counters for entries out of the hunt.
+        assert.equals(0, done.stats.visitsMissed)
+        assert.equals(0, disabled.stats.visitsMissed)
+        assert.equals(1, active.stats.visitsMissed) -- 4357 was not in stock
+    end)
+
     it("statusLine summarizes tracking without armed state", function()
         local core, h = makeCore({ entry = entry({ itemID = 4357, quantity = 1 }) })
         local done = entry({ itemID = 1936, quantity = 1 })

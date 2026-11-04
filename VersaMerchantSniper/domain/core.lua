@@ -116,6 +116,37 @@ function Core:runVisit(vendor, zone)
         -- Every match is a sighting ("last seen").
         SnipeLog.noteSighting(match.entry, match.slot.numAvailable, now, vendor, zone)
     end
+    -- Presence is recorded for EVERY tracked entry, done and disabled
+    -- included: "last seen" is "last time the item was listed on an opened
+    -- vendor", not "last time the hunt saw it". The second pass runs over
+    -- the slots the active pass did not claim, so the hunt's matching - and
+    -- the miss counting below - is untouched. Misses stay active-only:
+    -- entries out of the hunt collect no miss counters.
+    local activeKeys = {}
+    for _, entry in ipairs(active) do
+        activeKeys[entry.key] = true
+    end
+    local inactive = {}
+    for _, entry in ipairs(self:entries()) do
+        if not matched[entry.key] and not activeKeys[entry.key] then
+            inactive[#inactive + 1] = entry
+        end
+    end
+    if #inactive > 0 then
+        local claimed = {}
+        for _, match in ipairs(matches) do
+            claimed[match.slot.index] = true
+        end
+        local rest = {}
+        for _, slot in ipairs(slots) do
+            if not claimed[slot.index] then
+                rest[#rest + 1] = slot
+            end
+        end
+        for _, match in ipairs(Purchase.resolveMatches(rest, inactive)) do
+            SnipeLog.noteSighting(match.entry, match.slot.numAvailable, now, vendor, zone)
+        end
+    end
     local missed = 0
     for _, entry in ipairs(active) do
         if not matched[entry.key] then

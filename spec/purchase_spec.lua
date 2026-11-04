@@ -81,7 +81,7 @@ describe("Purchase", function()
             assert.equals(2, #matches)
         end)
 
-        it("skips done and disabled entries", function()
+        it("matches entries in any state - activity filtering is the caller's policy", function()
             local done = entry({ itemID = 4357 })
             done.status = "done"
             done.enabled = false
@@ -92,8 +92,10 @@ describe("Purchase", function()
                 { slot({ itemID = 4357 }), slot({ itemID = 4358 }), slot({ itemID = 4359 }) },
                 { done, disabled, live }
             )
-            assert.equals(1, #matches)
-            assert.equals("id:4359", matches[1].entry.key)
+            assert.equals(3, #matches)
+            assert.equals("id:4357", matches[1].entry.key)
+            assert.equals("id:4358", matches[2].entry.key)
+            assert.equals("id:4359", matches[3].entry.key)
         end)
     end)
 

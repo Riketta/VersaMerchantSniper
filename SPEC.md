@@ -58,8 +58,10 @@ Visit pipeline (MERCHANT_SHOW - observation only; there is no armed mode):
    numAvailable, maxStack, hasExtendedCost, isPurchasable.
 2. Match: ID first (`GetMerchantItemID`), name fallback for entries without
    an ID; first entry per slot wins, one slot per entry; nil names skipped.
-3. Stats: `lastSeen*` updates on ANY sighting; misses counted for
-   matched-nothing entries; a per-visit row lands in the ring.
+3. Stats: `lastSeen*` updates on ANY sighting, for EVERY tracked entry -
+   done and disabled included (presence record: "last time the item was on
+   an opened vendor"); misses counted only for active entries; a per-visit
+   row lands in the ring.
 4. `MERCHANT_UPDATE` is TELEMETRY ONLY. `MERCHANT_CLOSED` is telemetry.
 
 The addon NEVER calls `BuyMerchantItem`/`CloseMerchant` (live Midnight

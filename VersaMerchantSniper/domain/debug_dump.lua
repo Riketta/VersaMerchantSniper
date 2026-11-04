@@ -87,11 +87,11 @@ function M.slotLines(slots)
     return lines
 end
 
---- Verdict preview: matches and decisions exactly as the visit tick's
---- resolution would take them, then one NO MATCH line per active entry the
---- stock scan did not claim. Done and disabled entries never appear (the
---- core skips
---- them too).
+--- Verdict preview for the hunt: matches and decisions for the ACTIVE
+--- entries, exactly as the visit tick's hunt pass resolves them, then one
+--- NO MATCH line per active entry the stock scan did not claim. Done and
+--- disabled entries never appear - the core still records their sightings
+--- (presence), but this preview is about buying.
 ---@param slots MerchantSlot[]
 ---@param entries TrackedEntry[]
 ---@param money number copper on hand
@@ -100,7 +100,13 @@ end
 function M.matchLines(slots, entries, money, labeler)
     local lines = {}
     local matched = {}
-    for _, match in ipairs(Purchase.resolveMatches(slots, entries)) do
+    local active = {}
+    for _, entry in ipairs(entries) do
+        if entry.status == "active" and entry.enabled then
+            active[#active + 1] = entry
+        end
+    end
+    for _, match in ipairs(Purchase.resolveMatches(slots, active)) do
         local entry, slot = match.entry, match.slot
         matched[entry.key] = true
         local order = Purchase.decide(entry, slot, money)
@@ -116,8 +122,8 @@ function M.matchLines(slots, entries, money, labeler)
         end
         lines[#lines + 1] = table.concat(bits, ", ")
     end
-    for _, entry in ipairs(entries) do
-        if entry.status == "active" and entry.enabled and not matched[entry.key] then
+    for _, entry in ipairs(active) do
+        if not matched[entry.key] then
             lines[#lines + 1] = ("%s -> NO MATCH in stock"):format(labelFor(entry, labeler))
         end
     end
