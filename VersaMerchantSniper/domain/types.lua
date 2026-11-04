@@ -216,6 +216,29 @@ function M.mergeQuantity(existing, added)
     end
 end
 
+--- Replaces one entry's configuration with a validated update and restarts
+--- its want cycle (list-tab edit flow): quantity and the initial baseline
+--- reset to the requested amount, the entry re-arms, and the bought/spent
+--- counters zero - only the counting restarts; sightings history and visit
+--- counters survive (the audit trail). The identity key never changes: the
+--- caller (Core:updateEntry) refuses mismatched keys before getting here.
+---@param existing TrackedEntry the stored entry (mutated in place)
+---@param updated TrackedEntry the freshly validated replacement
+---@return nil
+function M.applyUpdate(existing, updated)
+    existing.quantity = updated.quantity
+    existing.quantityInitial = updated.quantity
+    existing.stopOnSuccess = updated.stopOnSuccess
+    existing.priceCeiling = updated.priceCeiling
+    if updated.name ~= nil then
+        existing.name = updated.name
+    end
+    existing.status = "active"
+    existing.enabled = true
+    existing.stats.boughtTotal = 0
+    existing.stats.spentTotal = 0
+end
+
 --- Shape check for entries read back from SavedVariables: identity, core
 --- numerics and a complete stats table must be intact; corrupt entries are
 --- dropped by validateDB, never repaired.

@@ -176,15 +176,26 @@ debug` preview):
 Duplicate adds merge: same key raises quantity instead of creating a second
 entry (old script allowed duplicates; intentional change).
 
+Editing (list tab): alt+click a row loads it into the input row (identity
+plus `max`/`nostop` tokens, quantity box) and flips Add to Update. Applying
+updates the entry in place and restarts its want cycle: quantity and the
+initial baseline reset to the request, the entry re-arms, and the
+bought/spent counters zero - sightings and visit counters survive (only the
+counting restarts). A swapped identity or rejected input falls through to a
+plain add; a blank item box (or Esc) cancels the edit. The quantity box is
+the GUI's quantity surface (1 default) and wins over any `x<qty>` token in
+the text; the slash path keeps the `x<qty>` spelling.
+
 ## UI spec
 
 - Window: portrait + NineSlice frame (AuctiMogger construction), ESC-close
   via `UISpecialFrames`, movable, clamped. Tabs: **List**, **Log**,
   **Settings**.
-- List tab: entry input (paste item link / bare ID; optional `x<qty>`,
-  `max <money>` tokens) + Add; columns: Status | Item | Want | Bought |
-  Ceiling | Last seen | Stop | Del. Status line ("Tracking N items - X
-  active, Y done").
+- List tab: entry input (paste item link / bare ID / name; optional `max
+  <money>`, `stop`/`nostop` tokens) + quantity-to-buy box (1 default) +
+  Add/Update button; alt+click a row to edit it in place, right-click to
+  remove; columns: Item | Want | Ceiling | Last seen | Stop | Status. Status
+  line ("Tracking N items - X active, Y done").
 - Log tab: pooled rows (time, kind, item, vendor, zone, qty, price, note);
   Clear-log button; newest first.
 - Settings tab: verbose, defaultQuantity, defaultStopOnSuccess, logSize,

@@ -101,6 +101,7 @@ local manifest = {
         "GetSubZoneText", -- visit zone stamp; degrades to nil
         "GetTime", -- session-seconds diagnostics; degrades to 0
         "GetZoneText", -- visit zone stamp; degrades to nil
+        "IsAltKeyDown", -- list-row alt+click edit guard; absent: alt+click never edits
         "IsModifiedClick", -- vendor-row link-capture guard; absent: the focused-box insert-home capture still works
         "MerchantItemButton_OnModifiedClick", -- vendor-row link-capture hook point; absent: the focused-box capture still works
         "UnitName", -- vendor name for log rows; degrades to nil

@@ -16,6 +16,7 @@
 --- of this surface: the clicker macro owns them (see clicker_api).
 ---@class ControlPort
 ---@field addEntry fun(self: any, raw: any): TrackedEntry|nil, string|nil validated entry (merged on duplicate key) or failure reason
+---@field updateEntry fun(self: any, key: string, raw: any): TrackedEntry|nil, string|nil in-place edit (list tab); restarts the want cycle; nil + reason on rejection or key mismatch
 ---@field removeEntry fun(self: any, ref: any): boolean key or 1-based list index; true when removed
 ---@field buyableSlots fun(self: any): {index: number, itemID: number}[] slots the clicker macro may buy (order verdict, itemID-backed)
 ---@field recordBuys fun(self: any, bought: table<number, number>|nil): nil clicker bookkeeping after a macro buyout (no engine calls)

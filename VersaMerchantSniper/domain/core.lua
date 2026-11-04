@@ -219,6 +219,34 @@ function Core:addEntry(raw)
     return entry
 end
 
+--- Replaces one tracked entry in place (list-tab edit flow, the AuctiMogger
+--- alt-click pattern). The raw input must validate AND resolve to the edited
+--- key - a rejected or mismatched edit never touches the stored entry (the
+--- GUI falls back to a plain add on a swapped identity). Updating restarts
+--- the want cycle: quantity resets to the request, the entry re-arms, and
+--- the bought/spent counters zero; sightings and visit counters survive.
+---@param key string the tracked entry key being edited
+---@param raw any untrusted entry fields
+---@return TrackedEntry|nil
+---@return string|nil reason
+function Core:updateEntry(key, raw)
+    local entry, reason = Types.validateEntry(raw, self:settings())
+    if entry == nil then
+        return nil, reason
+    end
+    if entry.key ~= key then
+        return nil, "key-mismatch"
+    end
+    for _, existing in ipairs(self:entries()) do
+        if existing.key == key then
+            Types.applyUpdate(existing, entry)
+            self.alerts:say(("Updated %s - want x%d."):format(self:displayName(existing, nil), existing.quantity))
+            return existing
+        end
+    end
+    return nil, "not-tracked"
+end
+
 --- Removes an entry by 1-based list index (number), key or exact name.
 ---@param ref any
 ---@return boolean

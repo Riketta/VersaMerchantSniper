@@ -129,6 +129,45 @@ describe("Types", function()
         end)
     end)
 
+    describe("applyUpdate", function()
+        it("swaps config, resets the want cycle and zeroes bought/spent counters", function()
+            local base = assert(Types.validateEntry({ itemID = 4357, quantity = 2, stopOnSuccess = true }))
+            base.status = "done"
+            base.enabled = false
+            base.stats.boughtTotal = 5
+            base.stats.spentTotal = 1234
+            local update =
+                assert(Types.validateEntry({ itemID = 4357, quantity = 3, stopOnSuccess = false, priceCeiling = 500 }))
+            Types.applyUpdate(base, update)
+            assert.equals(3, base.quantity)
+            assert.equals(3, base.quantityInitial)
+            assert.is_false(base.stopOnSuccess)
+            assert.equals(500, base.priceCeiling)
+            assert.equals("active", base.status)
+            assert.is_true(base.enabled)
+            assert.equals(0, base.stats.boughtTotal)
+            assert.equals(0, base.stats.spentTotal)
+        end)
+
+        it("keeps sightings and visit counters, refreshes the name only when given", function()
+            local base = assert(Types.validateEntry({ itemID = 4357, name = "Silk Cloth", quantity = 1 }))
+            base.stats.lastSeen = 99
+            base.stats.lastSeenVendor = "Innkeeper"
+            base.stats.visitsSeen = 3
+            base.stats.visitsMissed = 7
+            -- Bare-ID update: the known name survives.
+            Types.applyUpdate(base, assert(Types.validateEntry({ itemID = 4357, quantity = 2 })))
+            assert.equals("Silk Cloth", base.name)
+            assert.equals(99, base.stats.lastSeen)
+            assert.equals("Innkeeper", base.stats.lastSeenVendor)
+            assert.equals(3, base.stats.visitsSeen)
+            assert.equals(7, base.stats.visitsMissed)
+            -- A named update refreshes the display name in place.
+            Types.applyUpdate(base, assert(Types.validateEntry({ itemID = 4357, name = "Wool Cloth", quantity = 1 })))
+            assert.equals("Wool Cloth", base.name)
+        end)
+    end)
+
     describe("isEntry", function()
         it("accepts a valid entry", function()
             local e = assert(Types.validateEntry({ itemID = 4357 }))

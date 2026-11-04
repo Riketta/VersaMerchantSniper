@@ -26,6 +26,7 @@
 		"GetTime",
 		"GetZoneText",
 		"hooksecurefunc",
+		"IsAltKeyDown",
 		"IsModifiedClick",
 		"MerchantFrame",
 		"MerchantItemButton_OnModifiedClick",

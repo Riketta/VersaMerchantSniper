@@ -70,6 +70,7 @@ files["VersaMerchantSniper/ui"] = {
         "GetItemInfo",
         "GetTime",
         "hooksecurefunc",
+        "IsAltKeyDown",
         "IsModifiedClick",
         "MerchantFrame",
         "MerchantItemButton_OnModifiedClick",

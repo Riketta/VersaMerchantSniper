@@ -75,6 +75,7 @@ end
 ---@field merchantButton any|nil the MerchantFrame toggle button
 ---@field activeTab string
 ---@field lastBoxCapture {text: string, at: number}|nil last focused-box capture (vendor-hook dedupe)
+---@field editingKey string|nil tracked key loaded into the input row for in-place editing
 local Gui = {}
 
 --- Builds the GUI over the injected core surface.
@@ -91,6 +92,7 @@ function Gui.new(deps)
     self.frame = nil
     self.merchantButton = nil
     self.lastBoxCapture = nil
+    self.editingKey = nil
     self.activeTab = "list"
 
     -- The dashboard degrades independently of the sniper: a failed widget
@@ -209,8 +211,8 @@ function Gui:buildWindow()
     self:buildMerchantHook()
 end
 
---- List tab: entry input + add, pooled tracked-entry table (right-click a
---- row to remove).
+--- List tab: entry input + quantity box + add, pooled tracked-entry table
+--- (alt+click a row to edit it, right-click to remove).
 ---@return nil
 function Gui:buildListTab()
     local content = self.content.list
@@ -219,7 +221,7 @@ function Gui:buildListTab()
     hint:SetJustifyH("LEFT")
     hint:SetText(
         "Paste an item link (shift-click a bag item while the box is focused, or a vendor row while this window shows the List tab)"
-            .. " or type an ID / name, then Add. Right-click a row to remove."
+            .. " or type an ID / name, then Add. Alt+click a row to edit it, right-click to remove."
     )
 
     self.inputBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
@@ -233,6 +235,27 @@ function Gui:buildListTab()
     end)
     self.inputBox:SetScript("OnEscapePressed", function(box)
         box:SetText("")
+        box:ClearFocus()
+        -- Escaping out of the input row must not leave a stale edit target
+        -- behind (AuctiMogger pattern: clearing the item box cancels).
+        self:endEntryEdit()
+    end)
+
+    -- Quantity to buy: the GUI's quantity surface (the x<qty> token stays a
+    -- slash-only spelling). Always visible, 1 by default; the box wins over
+    -- any x<qty> token in the text.
+    self.qtyBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+    self.qtyBox:SetSize(44, 20)
+    self.qtyBox:SetPoint("LEFT", self.inputBox, "RIGHT", 14, 0)
+    self.qtyBox:SetNumeric(true)
+    self.qtyBox:SetAutoFocus(false)
+    self.qtyBox:SetText("1")
+    self.qtyBox:SetScript("OnEnterPressed", function(box)
+        self:addFromInput(self.inputBox:GetText())
+        self.inputBox:SetText("")
+        box:ClearFocus()
+    end)
+    self.qtyBox:SetScript("OnEscapePressed", function(box)
         box:ClearFocus()
     end)
 
@@ -298,7 +321,7 @@ function Gui:buildListTab()
 
     self.addButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
     self.addButton:SetSize(64, 22)
-    self.addButton:SetPoint("LEFT", self.inputBox, "RIGHT", 10, 0)
+    self.addButton:SetPoint("LEFT", self.qtyBox, "RIGHT", 10, 0)
     self.addButton:SetText("Add")
     self.addButton:SetScript("OnClick", function()
         self:addFromInput(self.inputBox:GetText())
@@ -358,9 +381,14 @@ function Gui:buildListTab()
         self.listTable:setOffset(self.listTable:getOffset() - delta * 3)
     end
     self.listTable.onClick = function(entryData, mouseButton)
-        if mouseButton == "RightButton" and entryData.entry ~= nil then
+        if entryData.entry == nil then
+            return
+        end
+        if mouseButton == "RightButton" then
             self.core:removeEntry(entryData.entry.key)
             self:refresh()
+        elseif mouseButton == "LeftButton" and IsAltKeyDown ~= nil and IsAltKeyDown() then
+            self:beginEntryEdit(entryData.entry)
         end
     end
 end
@@ -591,20 +619,87 @@ function Gui:setTab(name)
 end
 
 --- Parses the input box through the shared entry parser and hands the raw
---- fields to the core (validation + merge live there).
+--- fields to the core (validation + merge live there). While an edit is
+--- active (alt+click), a blank box cancels the edit, a parse of the same
+--- identity applies in place (Update), and a swapped identity falls
+--- through to a plain add (the AuctiMogger edit semantics).
 ---@param text string
 ---@return nil
 function Gui:addFromInput(text)
+    if self.editingKey ~= nil and (text == nil or text:match("^%s*$")) then
+        self:endEntryEdit()
+        self.alerts:say("Edit cancelled.")
+        return
+    end
     local raw, reason = VMS.ui.EntryInput.parse(text)
     if raw == nil then
         self.alerts:say("Add failed: " .. (reason or "unparseable") .. ".")
         return
     end
-    local entry, addReason = self.core:addEntry(raw)
-    if entry == nil then
+    -- The quantity box is the GUI's quantity surface: it wins over any
+    -- x<qty> token in the text. Non-blank garbage is refused here with a
+    -- message naming the box (the core would silently apply defaults).
+    local qtyText = self.qtyBox:GetText() or ""
+    if not qtyText:match("^%s*$") then
+        local qty = tonumber(qtyText)
+        if qty == nil or qty < 1 or qty ~= math.floor(qty) then
+            self.alerts:say("Quantity must be a whole number >= 1.")
+            return
+        end
+        raw.quantity = math.floor(qty)
+    end
+    local entry
+    if self.editingKey ~= nil then
+        entry = self.core:updateEntry(self.editingKey, raw)
+        if entry ~= nil then
+            self:endEntryEdit()
+            self.inputBox:SetText("")
+            self.qtyBox:SetText("1")
+            self:refresh()
+            return
+        end
+        -- Swapped identity, stale key or rejected fields: leave edit
+        -- mode and fall through to a plain add of the parsed input.
+        self:endEntryEdit()
+    end
+    local added, addReason = self.core:addEntry(raw)
+    if added == nil then
         self.alerts:say("Add failed: " .. (addReason or "unparseable") .. ".")
     end
     self:refresh()
+end
+
+--- Loads a tracked row into the input row for in-place editing: identity
+--- (+ ceiling/stop tokens) and quantity fill the boxes, the Add button
+--- flips to Update. The identity is the bare ID (or stored name) - the
+--- parser round-trips it; a vendor link is not available off-vendor.
+---@param entry TrackedEntry
+---@return nil
+function Gui:beginEntryEdit(entry)
+    if entry == nil or entry.key == nil then
+        return
+    end
+    self.editingKey = entry.key
+    local identity = entry.itemID ~= nil and tostring(entry.itemID) or (entry.name or "")
+    local parts = { identity }
+    if entry.priceCeiling ~= nil then
+        parts[#parts + 1] = "max " .. Money.compact(entry.priceCeiling)
+    end
+    if not entry.stopOnSuccess then
+        parts[#parts + 1] = "nostop"
+    end
+    self.inputBox:SetText(table.concat(parts, " "))
+    -- A done entry has 0 remaining; suggest 1 so the re-arm apply is valid.
+    self.qtyBox:SetText(tostring(math.max(entry.quantity or 1, 1)))
+    self.addButton:SetText("Update")
+    self.alerts:say("Editing " .. self:labelFor(entry) .. " - apply with Update, clear the item box to cancel.")
+end
+
+--- Clears edit mode and restores the Add button label.
+---@return nil
+function Gui:endEntryEdit()
+    self.editingKey = nil
+    self.addButton:SetText("Add")
 end
 
 --- Resolved row label: lookup name first, known name, bare ID last; done
