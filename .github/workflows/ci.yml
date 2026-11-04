@@ -11,11 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: leafo/gh-actions-lua@v10
+      # v13 installs LuaJIT from git clones of GitHub repos; v10 downloaded
+      # from luajit.org, which stopped serving tarballs (404), and every
+      # plain Lua version still downloads from lua.org's flaky FTP server.
+      # luajit-2.1.0-beta3 is the pinned branch of the openresty fork and is
+      # API-compatible with Lua 5.1; the 5.1-syntax gate itself stays with
+      # luacheck's own parser.
+      - uses: leafo/gh-actions-lua@v13.1.0
         with:
-          # LuaJIT 2.1 is 5.1-API-compatible and its tarball is GitHub-hosted
-          # (openresty/luajit2) - lua.org's FTP server times CI builds out
-          # regularly. The 5.1-syntax gate stays with luacheck's own parser.
           luaVersion: "luajit-2.1.0-beta3"
 
       - uses: luarocks/gh-actions-luarocks@v5
