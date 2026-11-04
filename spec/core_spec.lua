@@ -1,4 +1,10 @@
+-- Core binds Purchase/SnipeLog/Types off the shared namespace at load time,
+-- so the requires below ARE the load order: busted discovers files
+-- alphabetically and runs this file first, with no other spec having
+-- loaded them yet.
 local Types = require("VersaMerchantSniper.domain.types")
+require("VersaMerchantSniper.domain.purchase")
+require("VersaMerchantSniper.domain.snipe_log")
 local ActivityLog = require("VersaMerchantSniper.adapters.outbound.activity_log")
 local Core = require("VersaMerchantSniper.domain.core")
 
