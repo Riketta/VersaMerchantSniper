@@ -1,0 +1,9 @@
+lls.log
+lls.tar.gz
+lls/
+stylua.zip
+tools/
+*.zip
+.luacheckcache
+lls_console.log
+.luarocks/

@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      - uses: luarocks/gh-actions-luarocks@v5
+
+      - name: Install Lua tooling
+        run: |
+          luarocks install luacheck 1.2.0-1
+          luarocks install busted 2.2.0-1
+
+      - name: Install StyLua
+        uses: taiki-e/install-action@v2
+        with:
+          tool: stylua@2.6.0
+
+      - name: Format check (StyLua)
+        run: stylua --check .
+
+      - name: Lint + hexagonal boundary rules (luacheck)
+        run: luacheck .
+
+      - name: Unit tests (pure domain, no game client required)
+        run: busted --verbose
+
+      - name: TOC coverage guard (every lua file must be loaded by the game)
+        # Runs inside the addon folder so `find` output matches the TOC's
+        # root-relative entries (the TOC is relative to its own file).
+        run: cd VersaMerchantSniper && lua ../scripts/check_toc.lua VersaMerchantSniper.toc
+
+      - name: Compat manifest guard (every game surface the addon touches must be listed)
+        # Diffs the game-API usage of every TOC-loaded file against the tiers
+        # published by adapters/inbound/compat.lua; fails on used-but-unlisted.
+        run: lua scripts/check_compat.lua
+
+      - name: Type check (lua-language-server, strict)
+        env:
+          # Pin the LuaLS release; bump deliberately.
+          LLS_VERSION: 3.19.1
+        run: |
+          curl -fL "https://github.com/LuaLS/lua-language-server/releases/download/${LLS_VERSION}/lua-language-server-${LLS_VERSION}-linux-x64.tar.gz" -o lls.tar.gz
+          mkdir -p lls
+          tar -xzf lls.tar.gz -C lls
+          ./lls/bin/lua-language-server --check=./ --checklevel=Warning > ./lls.log 2>&1 || true
+          lua scripts/assert_lls_clean.lua ./lls.log
+
+  package:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build addon zip
+        # The repo is deployment-shaped: the addon folder zips as-is (all
+        # dev tooling lives outside it, nothing to exclude).
+        run: zip -r "${GITHUB_WORKSPACE}/VersaMerchantSniper.zip" VersaMerchantSniper
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VersaMerchantSniper
+          path: VersaMerchantSniper.zip

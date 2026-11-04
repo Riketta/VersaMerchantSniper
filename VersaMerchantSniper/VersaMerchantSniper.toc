@@ -1,0 +1,45 @@
+## Interface: 16001, 120100
+## Title: VersaMerchantSniper
+## Notes: Vendor-stand sniping with a hunting log - buys tracked items the moment a merchant opens.
+## Author: Riketta
+## Version: 0.1.0
+## SavedVariables: VersaMerchantSniperDB
+
+# Domain (pure Lua, no game API - CI-enforced)
+domain/types.lua
+domain/money.lua
+domain/purchase.lua
+domain/debug_dump.lua
+domain/snipe_log.lua
+
+# Ports (contract annotations only)
+ports/inbound.lua
+ports/outbound.lua
+
+# Core orchestration
+domain/core.lua
+
+# Outbound adapters
+adapters/outbound/clock.lua
+adapters/outbound/db.lua
+adapters/outbound/activity_log.lua
+adapters/outbound/name_lookup.lua
+adapters/outbound/merchant_api.lua
+adapters/outbound/alert_chat.lua
+
+# Inbound adapters (feed + compat)
+adapters/inbound/compat.lua
+adapters/inbound/merchant_feed.lua
+
+# GUI adapter
+ui/entry_input.lua
+ui/table_view.lua
+ui/feed_rows.lua
+ui/gui.lua
+
+# Command surfaces (slash needs ui.EntryInput at load)
+adapters/inbound/slash.lua
+adapters/inbound/clicker_api.lua
+
+# Composition root (must be last)
+bootstrap.lua

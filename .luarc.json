@@ -1,0 +1,42 @@
+{
+	"runtime.version": "Lua 5.1",
+	"workspace.checkThirdParty": false,
+	"workspace.ignore": ["legacy/**", "tools/**"],
+	"diagnostics.globals": [
+		"VersaMerchantSniper",
+		"VMS",
+		"VersaMerchantSniperDB",
+		"arg",
+		"C_Item",
+		"C_MerchantFrame",
+		"ClearCursor",
+		"CreateFrame",
+		"date",
+		"GameTooltip",
+		"GetBuildInfo",
+		"GetCursorInfo",
+		"GetItemInfo",
+		"GetMerchantItemID",
+		"GetMerchantItemInfo",
+		"GetMerchantItemLink",
+		"GetMerchantItemMaxStack",
+		"GetMerchantNumItems",
+		"GetMoney",
+		"GetSubZoneText",
+		"GetTime",
+		"GetZoneText",
+		"hooksecurefunc",
+		"IsModifiedClick",
+		"MerchantFrame",
+		"MerchantItemButton_OnModifiedClick",
+		"SLASH_VMS1",
+		"SLASH_VMS2",
+		"SlashCmdList",
+		"time",
+		"UIParent",
+		"UnitName"
+	],
+	"diagnostics.severity": {
+		"unused-local": "Warning"
+	}
+}
