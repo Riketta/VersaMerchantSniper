@@ -5,5 +5,5 @@ stylua.zip
 tools/
 *.zip
 .luacheckcache
-lls_console.log
+.lua/
 .luarocks/

@@ -1,7 +1,7 @@
 {
 	"runtime.version": "Lua 5.1",
 	"workspace.checkThirdParty": false,
-	"workspace.ignore": ["legacy/**", "tools/**"],
+	"workspace.ignore": [".lua/**", "legacy/**", "tools/**"],
 	"diagnostics.globals": [
 		"VersaMerchantSniper",
 		"VMS",

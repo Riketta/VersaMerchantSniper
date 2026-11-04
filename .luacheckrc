@@ -19,7 +19,9 @@ max_line_length = 150
 -- OO adapters are stateless: methods legitimately ignore the implicit self.
 self = false
 
-exclude_files = { ".luarocks/**", "tools/**", "legacy/**" }
+-- .lua/ is the CI runtime tree: luarocks/gh-actions-luarocks installs
+-- LuaRocks (with the bundled LuaJIT jit library) into $GITHUB_WORKSPACE/.lua.
+exclude_files = { ".lua/**", ".luarocks/**", "tools/**", "legacy/**" }
 
 globals = {
     "VersaMerchantSniper",
