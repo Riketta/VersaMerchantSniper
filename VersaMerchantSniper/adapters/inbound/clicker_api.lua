@@ -18,13 +18,14 @@ VMS.adapters.inbound = VMS.adapters.inbound or {}
 
 -- The canonical clicker macro: buys one unit of every tracked, wanted item
 -- still buyable (order verdict - stock, no extended cost, purchasable,
--- within ceiling, affordable), closes the vendor when something was bought,
--- then hands the bought counts to the addon for bookkeeping. Kept as one
--- constant so the Settings-tab copy box cannot drift from the documented
--- behavior.
+-- within ceiling, affordable), hands the bought counts to the addon for
+-- bookkeeping, then ALWAYS closes the vendor - stock only refreshes on
+-- open, so closing even on a dry press lets the next press start from a
+-- fresh scan. Kept as one constant so the Settings-tab copy box cannot
+-- drift from the documented behavior.
 local CLICKER_MACRO = "/run local b={} local s=VMS.BuyableSlots()"
     .. " for _,x in ipairs(s) do BuyMerchantItem(x.index,1) b[x.itemID]=(b[x.itemID] or 0)+1 end"
-    .. " if next(b)~=nil then CloseMerchant() end VMS.RecordBuys(b)"
+    .. " VMS.RecordBuys(b) CloseMerchant()"
 
 ---@class ClickerAPI
 ---@field core ControlPort|nil injected by new

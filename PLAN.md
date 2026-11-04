@@ -158,7 +158,8 @@ The addon NEVER calls `BuyMerchantItem`/`CloseMerchant` (live Midnight
 refuses purchase calls whose stack passes through addon frames). Buying is
 the clicker macro (see Slash + clicker API): `VMS.BuyableSlots()` returns the
 slots whose tracked match resolves to ORDER (verdicts below), the chunk buys
-one unit per slot and closes the vendor when something was bought, and
+one unit per slot, books the counts, and ALWAYS closes the vendor - stock
+only refreshes on open, so a dry press still closes for the next scan - and
 `VMS.RecordBuys(bought)` does the bookkeeping: `stopOnSuccess` decrements
 quantity; at 0 the entry flips to `status = "done"` (kept visible in the
 list UI, excluded from matching) — the list itself is preserved.
@@ -222,13 +223,14 @@ from the `/run` chunk and fails through one wrapper function), so the macro
 does pure Blizzard reads + buys inside the chunk and only hands the bought
 counts to the addon:
 `/run local b={} local s=VMS.BuyableSlots() for _,x in ipairs(s) do
-BuyMerchantItem(x.index,1) b[x.itemID]=(b[x.itemID] or 0)+1 end if
-next(b)~=nil then CloseMerchant() end VMS.RecordBuys(b)`.
+BuyMerchantItem(x.index,1) b[x.itemID]=(b[x.itemID] or 0)+1 end
+VMS.RecordBuys(b) CloseMerchant()`.
 `BuyableSlots()` is the order-verdict plan (stock, no extended cost,
 purchasable, within ceiling, affordable, itemID-backed); `RecordBuys(b)`
 decrements, completes stop-on-success entries, narrates and logs; the macro
-closes the vendor window when something was bought. Canonical text is
-`VMS.ClickerMacro`, shown on the Settings tab as a self-healing copy box.
+ALWAYS closes the vendor window — stock refreshes only on open, so the
+close-then-reopen cycle is how a dry press resets the scan. Canonical text
+is `VMS.ClickerMacro`, shown on the Settings tab as a self-healing copy box.
 The legacy `/run` item-macro helpers (`SnipeItemByID`, `SnipeItemByName`,
 `PrintItemsToBuy`, `WantedIDs`, the `Buyout()` stub) were removed with the
 sniping mode - entry management lives in `/vms` + the GUI; the clicker

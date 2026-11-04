@@ -47,9 +47,9 @@ changes are made.
   fails (live-verified: the same call succeeds from a `/run` chunk and
   fails through one addon wrapper). Buying is the self-contained macro (see
   PLAN.md): pure Blizzard reads + `VMS.BuyableSlots()` filter +
-  `BuyMerchantItem` per slot + `CloseMerchant` (only when something was
-  bought) inside the chunk, with `VMS.RecordBuys()` for the addon's
-  bookkeeping. `VMS.ClickerMacro` is the canonical text, shown on the
+  `BuyMerchantItem` per slot + `VMS.RecordBuys()` + `CloseMerchant`
+  (always - vendor stock only refreshes on open) inside the chunk.
+  `VMS.ClickerMacro` is the canonical text, shown on the
   dashboard's Settings tab.
 - Merchant reads are flavor-split (dump: Mainline/MerchantFrame.lua reads
   the namespace, Vanilla keeps the global): the item-info read is
@@ -128,8 +128,8 @@ PLAN.md                         behavior spec, data contracts, phases
 - The addon never calls `BuyMerchantItem`/`CloseMerchant` (engine gate on
   addon-context calls, see hard runtime facts). Buying and vendor closing
   happen via the clicker macro (`VMS.ClickerMacro`): one call per matching
-  slot per press; `CloseMerchant` fires only when something was bought.
-  `MERCHANT_UPDATE` is telemetry only.
+  slot per press; `CloseMerchant` always fires - reopening the vendor is
+  how the stock refreshes. `MERCHANT_UPDATE` is telemetry only.
 - Verdict order per matched slot (filters `VMS.BuyableSlots()` and the `/vms
   debug` preview): `no-stock` → `extended-cost` → `not-purchasable` →
   `ceiling` → `unaffordable` → order. Extended-cost items are never bought.

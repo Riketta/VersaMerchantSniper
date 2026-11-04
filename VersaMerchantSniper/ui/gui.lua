@@ -507,7 +507,7 @@ function Gui:buildSettingsTab()
     macroCaption:SetWidth(330)
     macroCaption:SetWordWrap(true)
     macroCaption:SetText(
-        "Clicker buyout macro - click the box, press Ctrl+C (buys tracked items, closes the vendor when something was bought):"
+        "Clicker buyout macro - click the box, press Ctrl+C (buys tracked items, always closes the vendor - reopen it to refresh stock):"
     )
 
     local macroText = VMS.ClickerMacro or ""

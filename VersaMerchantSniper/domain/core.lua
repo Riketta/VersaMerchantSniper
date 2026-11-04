@@ -8,7 +8,8 @@
 -- Buying belongs to the clicker macro (VMS.ClickerMacro), which executes
 -- the plan this module computes (buyableSlots) and hands the bought counts
 -- back for bookkeeping (recordBuys). The addon never closes the vendor
--- window either - the macro does that when something was bought.
+-- window either - the macro always does, since vendor stock only refreshes
+-- on open.
 
 local VMS = _G.VersaMerchantSniper or {}
 _G.VersaMerchantSniper = VMS
