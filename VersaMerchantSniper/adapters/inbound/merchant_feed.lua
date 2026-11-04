@@ -24,8 +24,8 @@ function M.new(sink)
     local self = setmetatable({}, { __index = M })
     self.sink = sink
     self.frame = CreateFrame("Frame", "VersaMerchantSniperFeedFrame")
-    self.frame:SetScript("OnEvent", function(_, event, ...)
-        self:onEvent(event, ...)
+    self.frame:SetScript("OnEvent", function(_, event)
+        self:onEvent(event)
     end)
     self.frame:RegisterEvent("MERCHANT_SHOW")
     self.frame:RegisterEvent("MERCHANT_CLOSED")
@@ -38,7 +38,7 @@ end
 --- BuyMerchantItem from this dispatch - VMS.Buyout() is the click path.
 ---@param event string
 ---@return nil
-function M:onEvent(event, ...)
+function M:onEvent(event)
     if event == "MERCHANT_SHOW" then
         self.sink:onMerchantShow(self:vendorName(), self:zone())
     elseif event == "MERCHANT_CLOSED" then
