@@ -7,7 +7,6 @@ describe("Types", function()
             assert.is_false(s.verbose)
             assert.equals(1, s.defaultQuantity)
             assert.is_true(s.defaultStopOnSuccess)
-            assert.equals(1000000, s.defaultPriceCeiling)
             assert.equals(300, s.logSize)
         end)
 
@@ -47,13 +46,6 @@ describe("Types", function()
             assert.equals(2, Types.sanitizeSettings({ defaultQuantity = 2.7 }).defaultQuantity)
             assert.equals(1, Types.sanitizeSettings({ defaultQuantity = 0.5 }).defaultQuantity)
         end)
-
-        it("floors and clamps defaultPriceCeiling at zero", function()
-            assert.equals(1000000, Types.sanitizeSettings({ defaultPriceCeiling = 1000000 }).defaultPriceCeiling)
-            assert.equals(500, Types.sanitizeSettings({ defaultPriceCeiling = 500.9 }).defaultPriceCeiling)
-            assert.equals(0, Types.sanitizeSettings({ defaultPriceCeiling = -5 }).defaultPriceCeiling)
-            assert.equals(1000000, Types.sanitizeSettings({ defaultPriceCeiling = "abc" }).defaultPriceCeiling)
-        end)
     end)
 
     describe("validateEntry", function()
@@ -67,36 +59,9 @@ describe("Types", function()
             assert.is_true(e.stopOnSuccess)
             assert.is_true(e.enabled)
             assert.equals("active", e.status)
-            assert.equals(1000000, e.priceCeiling) -- default buyout limit
+            assert.equals(nil, e.priceCeiling)
             assert.equals(0, e.stats.boughtTotal)
             assert.equals(0, e.stats.visitsSeen)
-        end)
-
-        it("applies the default buyout limit only when the ceiling is omitted", function()
-            local defaulted = assert(Types.validateEntry({ itemID = 4357 }))
-            assert.equals(1000000, defaulted.priceCeiling)
-            local explicit = assert(Types.validateEntry({ itemID = 4357, priceCeiling = 500 }))
-            assert.equals(500, explicit.priceCeiling)
-            -- An explicit 0 stays "no ceiling" even with a default in play.
-            local noLimit = assert(Types.validateEntry({ itemID = 4357, priceCeiling = 0 }))
-            assert.equals(nil, noLimit.priceCeiling)
-            -- Injected defaults win over the built-in default; 0 disables.
-            local injected = assert(Types.validateEntry({ itemID = 4357 }, {
-                verbose = false,
-                defaultQuantity = 1,
-                defaultStopOnSuccess = true,
-                defaultPriceCeiling = 250,
-                logSize = 300,
-            }))
-            assert.equals(250, injected.priceCeiling)
-            local injectedOff = assert(Types.validateEntry({ itemID = 4357 }, {
-                verbose = false,
-                defaultQuantity = 1,
-                defaultStopOnSuccess = true,
-                defaultPriceCeiling = 0,
-                logSize = 300,
-            }))
-            assert.equals(nil, injectedOff.priceCeiling)
         end)
 
         it("builds a name-only entry", function()

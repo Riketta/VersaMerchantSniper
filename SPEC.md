@@ -43,7 +43,6 @@ Behavior spec and data contracts — WHAT the addon does. HOW changes are made
 ---@field verbose boolean            -- old Debug-style scan chatter, default false
 ---@field defaultQuantity number     -- default 1
 ---@field defaultStopOnSuccess boolean -- default true
----@field defaultPriceCeiling number -- default unit buyout limit, copper (100g); 0 = no limit
 ---@field logSize number             -- ring size, default 300
 ```
 
@@ -88,12 +87,6 @@ debug` preview):
 Duplicate adds merge: same key raises quantity instead of creating a second
 entry (old script allowed duplicates; intentional change).
 
-Entry defaults: an entry added WITHOUT an explicit `max <money>` takes the
-settings' default buyout limit (`defaultPriceCeiling`, default 100g; 0 = no
-limit). An explicit `max 0` always means "no ceiling" - the list-tab edit
-flow emits `max 0` for limit-less entries so an update round-trips them
-unchanged.
-
 Editing (list tab): alt+click a row loads it into the input row (identity
 plus `max`/`nostop` tokens, quantity box) and flips Add to Update. Applying
 updates the entry in place and restarts its want cycle: quantity and the
@@ -120,8 +113,7 @@ the text; the slash path keeps the `x<qty>` spelling.
   line ("Tracking N items - X active, Y done").
 - Log tab: pooled rows (time, kind, item, vendor, zone, qty, price, note);
   Clear-log button; newest first.
-- Settings tab: verbose, defaultQuantity, defaultStopOnSuccess, default
-  buyout limit (money-format box, `0` = no limit), logSize,
+- Settings tab: verbose, defaultQuantity, defaultStopOnSuccess, logSize,
   Clear log + the clicker buyout macro box (self-healing copy source:
   focus selects all, edits snap back; text is `VMS.ClickerMacro`).
 - Merchant toggle button: lazy `ensure` on every `MERCHANT_SHOW` (+ first

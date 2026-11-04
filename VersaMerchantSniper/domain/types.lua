@@ -57,7 +57,6 @@ VMS.domain = VMS.domain or {}
 ---@field verbose boolean verbose scan chatter in chat
 ---@field defaultQuantity number quantity default for new entries
 ---@field defaultStopOnSuccess boolean stop-on-success default for new entries
----@field defaultPriceCeiling number default unit-price ceiling for new entries, copper; 0 = no limit
 ---@field logSize number visit ring buffer size
 
 ---@class DBShape the persisted VersaMerchantSniperDB layout
@@ -106,7 +105,6 @@ function M.defaultSettings()
         verbose = false,
         defaultQuantity = 1,
         defaultStopOnSuccess = true,
-        defaultPriceCeiling = 1000000,
         logSize = 300,
     }
 end
@@ -129,10 +127,6 @@ function M.sanitizeSettings(raw)
     if quantity and quantity >= 1 then
         out.defaultQuantity = math.floor(quantity)
     end
-    local ceiling = tonumber(src.defaultPriceCeiling)
-    if ceiling then
-        out.defaultPriceCeiling = math.floor(math.max(ceiling, 0))
-    end
     local size = tonumber(src.logSize)
     if size then
         out.logSize = math.floor(math.min(math.max(size, 10), 2000))
@@ -141,10 +135,8 @@ function M.sanitizeSettings(raw)
 end
 
 --- Validates untrusted entry input and builds a fresh TrackedEntry. Identity
---- is an itemID (> 0, < 2^31) or a non-blank name; an explicitly given
---- ceiling of 0 is stored as nil (no ceiling), an OMITTED ceiling takes the
---- settings' default buyout limit (defaultPriceCeiling, itself 0 = no
---- limit). Quantity accepts numeric strings (UI/slash leniency).
+--- is an itemID (> 0, < 2^31) or a non-blank name; a ceiling of 0 is stored
+--- as nil (no ceiling). Quantity accepts numeric strings (UI/slash leniency).
 ---@param raw any untrusted entry fields
 ---@param defaults VMSSettings|nil quantity/stop defaults when the input omits them
 ---@return TrackedEntry|nil
@@ -185,15 +177,6 @@ function M.validateEntry(raw, defaults)
         ceiling = math.floor(ceiling)
         if ceiling == 0 then
             ceiling = nil
-        end
-    else
-        -- Omitted ceiling: the settings' default buyout limit applies
-        -- (an explicit `max 0` above still means "no limit").
-        ceiling = tonumber(d.defaultPriceCeiling)
-        if ceiling == nil or ceiling <= 0 then
-            ceiling = nil
-        else
-            ceiling = math.floor(ceiling)
         end
     end
 
