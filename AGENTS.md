@@ -14,7 +14,7 @@ addon evolution of the legacy `legacy/VersaUtils_MerchantSniper.lua`
 script (kept verbatim for reference; the addon publishes the `/run`
 clicker API).
 
-The behavior spec, data contracts and phases live in `PLAN.md` — the source
+The behavior spec and data contracts live in `SPEC.md` — the source
 of truth for WHAT the addon does. This file is the source of truth for HOW
 changes are made.
 
@@ -46,7 +46,7 @@ changes are made.
   `BuyMerchantItem`/`CloseMerchant` — any call passing through addon frames
   fails (live-verified: the same call succeeds from a `/run` chunk and
   fails through one addon wrapper). Buying is the self-contained macro (see
-  PLAN.md): pure Blizzard reads + `VMS.BuyableSlots()` filter +
+  SPEC.md): pure Blizzard reads + `VMS.BuyableSlots()` filter +
   `BuyMerchantItem` per slot + `VMS.RecordBuys()` + `CloseMerchant`
   (always - vendor stock only refreshes on open) inside the chunk.
   `VMS.ClickerMacro` is the canonical text, shown on the
@@ -101,7 +101,7 @@ scripts/                        run_tests.lua, check_toc.lua, assert_lls_clean.l
                                 check_compat.lua, ci_local.sh, bootstrap-tools.sh
 tools/                          vendored stylua + lls (gitignored; bootstrap-tools.sh refetches)
 .github/workflows/ci.yml        the gate
-PLAN.md                         behavior spec, data contracts, phases
+SPEC.md                         behavior spec, data contracts
 ```
 
 ## Code contracts & typing

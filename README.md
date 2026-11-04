@@ -51,5 +51,5 @@ bash scripts/ci_local.sh          # full gate: stylua, luacheck, busted,
                                   # TOC coverage, compat manifest, LuaLS
 ```
 
-Architecture, contracts and rules: `AGENTS.md`. Behavior spec and phases:
-`PLAN.md`.
+Architecture, contracts and rules: `AGENTS.md`. Behavior spec and data
+contracts: `SPEC.md`.
