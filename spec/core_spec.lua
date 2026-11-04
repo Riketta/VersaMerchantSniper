@@ -273,6 +273,12 @@ describe("SnipingCore", function()
         assert.is_false(core:setSetting("nope", 1))
         assert.is_true(core:setSetting("verbose", true))
         assert.is_true(h.shape.settings.verbose)
+        assert.is_true(core:setSetting("defaultPriceCeiling", 250000))
+        assert.equals(250000, h.shape.settings.defaultPriceCeiling)
+        assert.is_true(core:setSetting("defaultPriceCeiling", 0)) -- 0 = no limit
+        assert.equals(0, h.shape.settings.defaultPriceCeiling)
+        assert.is_false(core:setSetting("defaultPriceCeiling", -1))
+        assert.is_false(core:setSetting("defaultPriceCeiling", "abc"))
     end)
 end)
 

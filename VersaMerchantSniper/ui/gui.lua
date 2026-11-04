@@ -479,9 +479,43 @@ function Gui:buildSettingsTab()
     quantityLabel:SetJustifyH("LEFT")
     quantityLabel:SetText("default quantity for new entries")
 
+    -- Default buyout limit: money-format box (100g / 12g34s / 500c), 0 = no
+    -- limit. A saved ceiling keeps new entries from buying at any price.
+    self.ceilingBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+    self.ceilingBox:SetSize(60, 20)
+    self.ceilingBox:SetPoint("TOPLEFT", content, "TOPLEFT", 34, -108)
+    self.ceilingBox:SetAutoFocus(false)
+    self.ceilingBox:SetScript("OnEnterPressed", function(box)
+        local text = box:GetText()
+        local copper
+        if text == nil or text:match("^%s*$") then
+            copper = 0 -- blank: no limit
+        else
+            copper = Money.parseCopper(text) -- nil on garbage
+        end
+        if copper == nil then
+            self.alerts:say("Rejected: use a money format like 100g, 12g34s, 500c (0 = no limit).")
+        else
+            local ok, reason = self.core:setSetting("defaultPriceCeiling", copper)
+            if not ok then
+                self.alerts:say("Rejected: " .. (reason or "?"))
+            end
+        end
+        box:ClearFocus()
+        self:refreshSettings()
+    end)
+    self.ceilingBox:SetScript("OnEscapePressed", function(box)
+        box:ClearFocus()
+    end)
+
+    local ceilingLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    ceilingLabel:SetPoint("LEFT", self.ceilingBox, "RIGHT", 8, 0)
+    ceilingLabel:SetJustifyH("LEFT")
+    ceilingLabel:SetText("default buyout limit for new entries (0 = no limit)")
+
     self.logSizeBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
     self.logSizeBox:SetSize(60, 20)
-    self.logSizeBox:SetPoint("TOPLEFT", content, "TOPLEFT", 34, -108)
+    self.logSizeBox:SetPoint("TOPLEFT", content, "TOPLEFT", 34, -138)
     self.logSizeBox:SetNumeric(true)
     self.logSizeBox:SetAutoFocus(false)
     self.logSizeBox:SetScript("OnEnterPressed", function(box)
@@ -502,7 +536,7 @@ function Gui:buildSettingsTab()
     -- (Ctrl+C copies); any user edit heals back to the canonical text that
     -- clicker_api publishes as VMS.ClickerMacro.
     local macroCaption = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    macroCaption:SetPoint("TOPLEFT", content, "TOPLEFT", 8, -142)
+    macroCaption:SetPoint("TOPLEFT", content, "TOPLEFT", 8, -172)
     macroCaption:SetJustifyH("LEFT")
     macroCaption:SetWidth(330)
     macroCaption:SetWordWrap(true)
@@ -513,7 +547,7 @@ function Gui:buildSettingsTab()
     local macroText = VMS.ClickerMacro or ""
     self.macroBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
     self.macroBox:SetSize(330, 20)
-    self.macroBox:SetPoint("TOPLEFT", content, "TOPLEFT", 12, -180)
+    self.macroBox:SetPoint("TOPLEFT", content, "TOPLEFT", 12, -210)
     self.macroBox:SetAutoFocus(false)
     self.macroBox:SetText(macroText)
     self.macroBox:SetScript("OnEditFocusGained", function(box)
@@ -687,8 +721,13 @@ function Gui:beginEntryEdit(entry)
     self.editingKey = entry.key
     local identity = entry.itemID ~= nil and tostring(entry.itemID) or (entry.name or "")
     local parts = { identity }
+    -- Round-trip the ceiling: `max 0` keeps a limit-less entry
+    -- limit-less (an omitted max now takes the settings default on
+    -- apply).
     if entry.priceCeiling ~= nil then
         parts[#parts + 1] = "max " .. Money.compact(entry.priceCeiling)
+    else
+        parts[#parts + 1] = "max 0"
     end
     if not entry.stopOnSuccess then
         parts[#parts + 1] = "nostop"
@@ -786,6 +825,13 @@ function Gui:refreshSettings()
     self.checks.verbose:SetChecked(settings.verbose)
     self.checks.defaultStopOnSuccess:SetChecked(settings.defaultStopOnSuccess)
     self.quantityBox:SetText(tostring(settings.defaultQuantity))
+    if self.ceilingBox ~= nil then
+        local ceiling = settings.defaultPriceCeiling or 0
+        local text = ceiling > 0 and Money.compact(ceiling) or "0"
+        if self.ceilingBox:GetText() ~= text then
+            self.ceilingBox:SetText(text)
+        end
+    end
     self.logSizeBox:SetText(tostring(settings.logSize))
     if self.macroBox ~= nil then
         local macroText = VMS.ClickerMacro or ""

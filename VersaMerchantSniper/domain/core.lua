@@ -322,6 +322,12 @@ function Core:setSetting(field, value)
             return false, "expected whole number >= 1"
         end
         settings[field] = math.floor(n)
+    elseif field == "defaultPriceCeiling" then
+        local n = tonumber(value)
+        if n == nil or n < 0 or n ~= math.floor(n) then
+            return false, "expected whole number >= 0"
+        end
+        settings[field] = math.floor(n)
     elseif field == "logSize" then
         local n = tonumber(value)
         if n == nil or n < 10 then
