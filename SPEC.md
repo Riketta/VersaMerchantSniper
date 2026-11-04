@@ -41,7 +41,7 @@ Behavior spec and data contracts — WHAT the addon does. HOW changes are made
 
 ---@class VMSSettings
 ---@field verbose boolean            -- old Debug-style scan chatter, default false
----@field defaultQuantity number     -- default 1
+---@field defaultQuantity number     -- default 100
 ---@field defaultStopOnSuccess boolean -- default true
 ---@field logSize number             -- ring size, default 300
 ```

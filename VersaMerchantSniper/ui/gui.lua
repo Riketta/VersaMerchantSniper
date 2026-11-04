@@ -247,14 +247,14 @@ function Gui:buildListTab()
     end)
 
     -- Quantity to buy: the GUI's quantity surface (the x<qty> token stays a
-    -- slash-only spelling). Always visible, 1 by default; the box wins over
-    -- any x<qty> token in the text.
+    -- slash-only spelling). Always visible, seeded from the settings'
+    -- defaultQuantity; the box wins over any x<qty> token in the text.
     self.qtyBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
     self.qtyBox:SetSize(44, 20)
     self.qtyBox:SetPoint("LEFT", self.inputBox, "RIGHT", 14, 0)
     self.qtyBox:SetNumeric(true)
     self.qtyBox:SetAutoFocus(false)
-    self.qtyBox:SetText("1")
+    self.qtyBox:SetText(tostring(self.core:settings().defaultQuantity))
     self.qtyBox:SetScript("OnEnterPressed", function(box)
         self:addFromInput(self.inputBox:GetText())
         self.inputBox:SetText("")
@@ -659,7 +659,7 @@ function Gui:addFromInput(text)
         if entry ~= nil then
             self:endEntryEdit()
             self.inputBox:SetText("")
-            self.qtyBox:SetText("1")
+            self.qtyBox:SetText(tostring(self.core:settings().defaultQuantity))
             self:refresh()
             return
         end
@@ -694,8 +694,11 @@ function Gui:beginEntryEdit(entry)
         parts[#parts + 1] = "nostop"
     end
     self.inputBox:SetText(table.concat(parts, " "))
-    -- A done entry has 0 remaining; suggest 1 so the re-arm apply is valid.
-    self.qtyBox:SetText(tostring(math.max(entry.quantity or 1, 1)))
+    -- A done entry has 0 remaining; suggest the settings' default
+    -- quantity so the re-arm apply is valid.
+    local suggested = entry.quantity ~= nil and entry.quantity > 0 and entry.quantity
+        or self.core:settings().defaultQuantity
+    self.qtyBox:SetText(tostring(suggested))
     self.addButton:SetText("Update")
     self.alerts:say("Editing " .. self:labelFor(entry) .. " - apply with Update, clear the item box to cancel.")
 end

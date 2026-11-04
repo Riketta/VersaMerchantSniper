@@ -103,7 +103,7 @@ end
 function M.defaultSettings()
     return {
         verbose = false,
-        defaultQuantity = 1,
+        defaultQuantity = 100,
         defaultStopOnSuccess = true,
         logSize = 300,
     }
