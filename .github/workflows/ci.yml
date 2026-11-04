@@ -24,9 +24,20 @@ jobs:
       - uses: luarocks/gh-actions-luarocks@v5
 
       - name: Install Lua tooling
+        # Direct pinned rocks, bypassing manifest search: the luarocks.org
+        # manifest outgrew LuaJIT's 65536-constants-per-function parse
+        # limit, so "luarocks install <name>" cannot resolve anything (every
+        # manifest server fails the same way). The per-namespace URLs below
+        # are small and load fine. busted's whole dependency chain resolves
+        # through that manifest too, so tests run on the repo's own
+        # busted-compatible shim instead (same harness local runs use).
         run: |
-          luarocks install luacheck 1.2.0-1
-          luarocks install busted 2.2.0-1
+          curl -fL https://luarocks.org/manifests/argparse/argparse-0.7.2-1.src.rock -o argparse.src.rock
+          curl -fL https://luarocks.org/manifests/hisham/luafilesystem-1.8.0-1.src.rock -o luafilesystem.src.rock
+          curl -fL https://luarocks.org/manifests/lunarmodules/luacheck-1.2.0-1.src.rock -o luacheck.src.rock
+          luarocks install --deps-mode=none argparse.src.rock
+          luarocks install --deps-mode=none luafilesystem.src.rock
+          luarocks install --deps-mode=none luacheck.src.rock
 
       - name: Install StyLua
         uses: taiki-e/install-action@v2
@@ -39,8 +50,8 @@ jobs:
       - name: Lint + hexagonal boundary rules (luacheck)
         run: luacheck .
 
-      - name: Unit tests (pure domain, no game client required)
-        run: busted --verbose
+      - name: Unit tests (busted-compatible shim; alphabetical spec order = busted discovery order)
+        run: lua scripts/run_tests.lua spec/core_spec.lua spec/debug_dump_spec.lua spec/entry_input_spec.lua spec/money_spec.lua spec/purchase_spec.lua spec/snipe_log_spec.lua spec/types_spec.lua
 
       - name: TOC coverage guard (every lua file must be loaded by the game)
         # Runs inside the addon folder so `find` output matches the TOC's

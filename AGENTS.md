@@ -148,7 +148,11 @@ coverage → compat manifest → type check, same as `.github/workflows/ci.yml`.
 - luacheck clean; every new game global lands in BOTH `.luacheckrc` and
   `.luarc.json` in the same change; adapters/ui surfaces must also be listed
   in the compat manifest (`scripts/check_compat.lua` fails on drift).
-- Busted specs for all pure logic; `scripts/run_tests.lua` is the no-rocks
-  local shim.
+- Specs for all pure logic run through the repo's busted-compatible shim
+  (`scripts/run_tests.lua`), locally and in CI: busted's dependency
+  resolution needs the luarocks.org manifest, which outgrew LuaJIT's
+  65536-constant parse limit (CI installs luacheck from direct pinned rock
+  URLs for the same reason). Spec files must require the shim order: load
+  dependencies before the module under test.
 - In-game validation: `/console scriptErrors 1`; exercise every touched
   feature in and out of combat; taint errors surface delayed and silently.
